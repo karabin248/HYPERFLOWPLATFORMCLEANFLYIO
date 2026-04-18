@@ -1,10 +1,10 @@
-# fly.toml app configuration file generated for hyperflow-api on 2026-04-18T06:36:40Z
+# fly.toml app configuration file generated for hyperflow-api on 2026-04-18T07:28:00Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = 'hyperflow-api'
-primary_region = 'iad'
+primary_region = 'fra'
 
 [build]
 
