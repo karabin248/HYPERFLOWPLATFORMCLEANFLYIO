@@ -27,7 +27,7 @@ primary_region = "ams"
   [[http_service.checks]]
     type = "http"
     method = "GET"
-    path = "/api/livez"
+    path = "/api/healthz"
     interval = "15s"
     timeout = "5s"
     grace_period = "20s"
