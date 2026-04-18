@@ -1,10 +1,10 @@
-# fly.toml app configuration file generated for hyperflowplatformcleanflyio on 2026-04-18T06:31:22Z
+# fly.toml app configuration file generated for hyperflow-api on 2026-04-18T06:36:40Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'hyperflowplatformcleanflyio'
-primary_region = 'ams'
+app = 'hyperflow-api'
+primary_region = 'iad'
 
 [build]
 
@@ -20,4 +20,4 @@ primary_region = 'ams'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 512
+  memory_mb = 1024
