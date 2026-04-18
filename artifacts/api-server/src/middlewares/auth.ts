@@ -2,9 +2,17 @@ import { type Request, type Response, type NextFunction } from "express";
 import { logger } from "../lib/logger";
 
 const API_TOKEN = process.env.API_TOKEN;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 if (!API_TOKEN) {
-  logger.warn("API_TOKEN is not set — all requests will be allowed (dev mode)");
+  if (IS_PRODUCTION) {
+    logger.fatal("API_TOKEN is not set in production — refusing to start");
+    process.exit(1);
+  } else {
+    logger.warn(
+      "API_TOKEN is not set — running in open dev mode (all requests allowed)",
+    );
+  }
 }
 
 export function requireApiToken(

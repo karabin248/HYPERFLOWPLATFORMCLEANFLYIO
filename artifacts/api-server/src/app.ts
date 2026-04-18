@@ -33,8 +33,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", healthRouter);
 
-app.use(requireApiToken);
-
-app.use("/api", protectedRouter);
+app.use("/api", requireApiToken, protectedRouter);
 
 export default app;
