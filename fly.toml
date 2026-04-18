@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for hyperflow-api on 2026-04-18T04:47:11Z
+# fly.toml app configuration file generated for hyperflowplatformcleanflyio on 2026-04-18T05:24:47Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'hyperflow-api'
+app = 'hyperflowplatformcleanflyio'
 primary_region = 'ams'
 
 [build]
