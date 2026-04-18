@@ -1,0 +1,51 @@
+modules = ["nodejs-24", "python-3.12"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Platform Shell"
+
+[[workflows.workflow]]
+name = "Platform Shell"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "set -euo pipefail; : ${API_TOKEN:?API_TOKEN must be set}; : ${DATABASE_URL:?DATABASE_URL must be set}; HYPERFLOW_SCANNER_ALLOWED_HOSTS=github.com,gitlab.com,bitbucket.org HOST=127.0.0.1 PORT=8000 python3 main.py & pnpm --filter @workspace/api-server run build && PORT=8081 NODE_ENV=production HARDENED_MODE=true HYPERFLOW_CORE_URL=http://127.0.0.1:8000 pnpm --filter @workspace/api-server run start"
+waitForPort = 8081
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+integrations = ["github:1.0.0"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[nix]
+channel = "stable-25_05"
+packages = ["libxcrypt"]
+
+
+[[ports]]
+localPort = 8081
+externalPort = 80
