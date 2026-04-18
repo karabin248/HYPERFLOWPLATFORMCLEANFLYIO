@@ -1,52 +1,29 @@
-import { timingSafeEqual } from "node:crypto";
-import type { Request, Response, NextFunction } from "express";
-import { getConfig } from "../lib/config";
+import { type Request, type Response, type NextFunction } from "express";
 import { logger } from "../lib/logger";
-import { emitAuditEvent } from "../lib/auditLog";
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
-  const config = getConfig();
+const API_TOKEN = process.env.API_TOKEN;
 
-  if (!config.hardenedMode) {
+if (!API_TOKEN) {
+  logger.warn("API_TOKEN is not set — all requests will be allowed (dev mode)");
+}
+
+export function requireApiToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  if (!API_TOKEN) {
     next();
     return;
   }
 
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    logger.warn({ method: req.method, url: req.url, correlationId: req.correlationId }, "Auth missing");
-    emitAuditEvent({ action: "auth.failed", correlationId: req.correlationId, details: { reason: "missing_token", method: req.method, url: req.url } });
-    res.status(401).json({
-      error: "Authentication required",
-      code: "AUTH_MISSING",
-    });
-    return;
-  }
+  const authHeader = req.headers["authorization"] ?? "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : null;
 
-  const parts = authHeader.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer") {
-    emitAuditEvent({ action: "auth.failed", correlationId: req.correlationId, details: { reason: "invalid_format", method: req.method, url: req.url } });
-    res.status(401).json({
-      error: "Invalid authentication format",
-      code: "AUTH_INVALID_FORMAT",
-    });
-    return;
-  }
-
-  const token = parts[1];
-  const expected = config.apiToken ?? "";
-  const tokenBuffer = Buffer.from(token);
-  const expectedBuffer = Buffer.from(expected);
-  const tokenMatches = tokenBuffer.length === expectedBuffer.length
-    && timingSafeEqual(tokenBuffer, expectedBuffer);
-
-  if (!tokenMatches) {
-    logger.warn({ method: req.method, url: req.url, correlationId: req.correlationId }, "Auth token invalid");
-    emitAuditEvent({ action: "auth.denied", correlationId: req.correlationId, details: { reason: "invalid_token", method: req.method, url: req.url } });
-    res.status(403).json({
-      error: "Forbidden",
-      code: "AUTH_FORBIDDEN",
-    });
+  if (!token || token !== API_TOKEN) {
+    res.status(401).json({ status: "error", error: "Unauthorized" });
     return;
   }
 
