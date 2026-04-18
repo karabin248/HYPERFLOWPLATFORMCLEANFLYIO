@@ -11,11 +11,6 @@ primary_region = "ams"
   HYPERFLOW_CORE_URL = "http://hyperflow-core.internal:8000"
   TRUST_PROXY = "1"
 
-[deploy]
-  release_command = """
-    /bin/sh -c 'corepack enable && corepack prepare pnpm@9.15.4 --activate && pnpm install --frozen-lockfile && pnpm --filter @workspace/db run push'
-  """
-
 [http_service]
   internal_port = 8080
   force_https = true
