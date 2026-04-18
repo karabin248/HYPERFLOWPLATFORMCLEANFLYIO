@@ -5,11 +5,25 @@ import ScanAllButton from "./components/ScanAllButton";
 import RepoTable from "./components/RepoTable";
 import RunsTable from "./components/RunsTable";
 import GraphView from "./components/GraphView";
-import { listRepositories } from "./api";
+import LoginScreen from "./components/LoginScreen";
+import { listRepositories, getToken, setUnauthorizedHandler } from "./api";
 
 function App() {
+  const [authenticated, setAuthenticated] = useState<boolean>(() => !!getToken());
   const [repos, setRepos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleUnauthorized = useCallback(() => {
+    setAuthenticated(false);
+    setRepos([]);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(handleUnauthorized);
+    return () => {
+      setUnauthorizedHandler(() => {});
+    };
+  }, [handleUnauthorized]);
 
   const fetchRepos = useCallback(async () => {
     setLoading(true);
@@ -21,8 +35,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetchRepos();
-  }, [fetchRepos]);
+    if (authenticated) {
+      fetchRepos();
+    }
+  }, [authenticated, fetchRepos]);
+
+  if (!authenticated) {
+    return <LoginScreen onLogin={() => setAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">

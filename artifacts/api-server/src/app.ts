@@ -54,7 +54,17 @@ const PUBLIC_DIR = path.join(
   "public",
 );
 
-app.use(express.static(PUBLIC_DIR));
+app.use(
+  express.static(PUBLIC_DIR, {
+    setHeaders(res, filePath) {
+      if (path.basename(filePath) === "index.html") {
+        res.setHeader("Cache-Control", "no-cache");
+      } else {
+        res.setHeader("Cache-Control", "max-age=31536000, immutable");
+      }
+    },
+  }),
+);
 
 // SPA fallback — scoped to non-/api routes so API paths are never masked.
 // GET /dashboard    → index.html  ✓
@@ -64,6 +74,7 @@ app.get("/{*path}", (req, res, next) => {
   if (req.path.startsWith("/api")) {
     return next();
   }
+  res.setHeader("Cache-Control", "no-cache");
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 

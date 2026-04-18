@@ -1,5 +1,25 @@
 const API_BASE = "/api";
 
+const TOKEN_KEY = "operator_token";
+
+export function getToken(): string | null {
+  return sessionStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string): void {
+  sessionStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken(): void {
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(fn: () => void): void {
+  unauthorizedHandler = fn;
+}
+
 interface ApiResponse {
   status: string;
   data?: any;
@@ -8,13 +28,27 @@ interface ApiResponse {
 
 async function request(path: string, options?: RequestInit): Promise<ApiResponse> {
   try {
+    const token = getToken();
+    const headers = new Headers(options?.headers);
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
     const res = await fetch(`${API_BASE}${path}`, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+      headers,
     });
+
+    if (res.status === 401) {
+      clearToken();
+      if (unauthorizedHandler) {
+        unauthorizedHandler();
+      }
+      return { status: "error", error: "Unauthorized" };
+    }
 
     if (!res.ok) {
       let errorMessage = `HTTP ${res.status}`;
