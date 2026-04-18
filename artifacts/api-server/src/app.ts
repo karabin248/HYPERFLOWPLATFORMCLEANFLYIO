@@ -59,7 +59,8 @@ app.use(express.static(PUBLIC_DIR));
 // SPA fallback — scoped to non-/api routes so API paths are never masked.
 // GET /dashboard    → index.html  ✓
 // GET /api/unknown  → falls through to Express 404  ✓
-app.get("*", (req, res, next) => {
+// Note: Express 5 requires a named wildcard; "/{*path}" is the correct form.
+app.get("/{*path}", (req, res, next) => {
   if (req.path.startsWith("/api")) {
     return next();
   }
