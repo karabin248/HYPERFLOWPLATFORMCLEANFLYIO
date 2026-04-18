@@ -2,11 +2,14 @@ import { type Request, type Response, type NextFunction } from "express";
 import { logger } from "../lib/logger";
 
 const API_TOKEN = process.env.API_TOKEN;
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const IS_DEV =
+  process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
 
 if (!API_TOKEN) {
-  if (IS_PRODUCTION) {
-    logger.fatal("API_TOKEN is not set in production — refusing to start");
+  if (!IS_DEV) {
+    logger.fatal(
+      "API_TOKEN is not set — refusing to start (set NODE_ENV=development to bypass)",
+    );
     process.exit(1);
   } else {
     logger.warn(
