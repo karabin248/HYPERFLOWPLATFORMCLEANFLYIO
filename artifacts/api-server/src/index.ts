@@ -1,75 +1,25 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { getConfig } from "./lib/config";
-import { pool, db, agentsTable } from "@workspace/db";
-import { pythonClient } from "./lib/pythonClient";
 
-const config = getConfig();
+const rawPort = process.env["PORT"];
 
-async function verifySchema(): Promise<void> {
-  await db.select({ id: agentsTable.id }).from(agentsTable).limit(1);
-  logger.info("Database schema verified");
+if (!rawPort) {
+  throw new Error(
+    "PORT environment variable is required but was not provided.",
+  );
 }
 
-export async function checkDependencies(): Promise<void> {
-  const client = await pool.connect();
-  try {
-    await client.query("SELECT 1");
-    logger.info("Database connection verified");
-  } finally {
-    client.release();
-  }
+const port = Number(rawPort);
 
-  await verifySchema();
-
-  const coreResult = await pythonClient.health();
-  if (!coreResult.ok) {
-    throw new Error(`Hyperflow Core health verification failed: ${coreResult.error.code} ${coreResult.error.message}`);
-  }
-
-  logger.info("Hyperflow Core connection verified");
+if (Number.isNaN(port) || port <= 0) {
+  throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-export async function startServer(): Promise<void> {
-  const rawPort = process.env["PORT"];
-
-  if (!rawPort) {
-    throw new Error("PORT environment variable is required but was not provided.");
-  }
-
-  const port = Number(rawPort);
-
-  if (Number.isNaN(port) || port <= 0) {
-    throw new Error(`Invalid PORT value: \"${rawPort}\"`);
-  }
-
-  await checkDependencies();
-
-  await new Promise<void>((resolve, reject) => {
-    app.listen(port, (err) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      logger.info(
-        {
-          port,
-          mode: config.hardenedMode ? "hardened" : "development",
-          coreUrl: config.coreUrl,
-        },
-        "Server listening",
-      );
-      resolve();
-    });
-  });
-}
-
-const isMainModule = process.argv[1] != null && import.meta.url === new URL(`file://${process.argv[1]}`).href;
-
-if (isMainModule) {
-  startServer().catch((err) => {
-    logger.fatal({ err }, "Server startup failed");
+app.listen(port, (err) => {
+  if (err) {
+    logger.error({ err }, "Error listening on port");
     process.exit(1);
-  });
-}
+  }
+
+  logger.info({ port }, "Server listening");
+});

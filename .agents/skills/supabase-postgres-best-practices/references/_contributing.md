@@ -167,4 +167,5 @@ Before submitting a reference:
 - [ ] Comments explain _why_, not _what_
 - [ ] Trade-offs mentioned if applicable
 - [ ] Reference links included
-- [ ] `mise run test` passes
+- [ ] `npm run validate` passes
+- [ ] `npm run build` generates correct output
