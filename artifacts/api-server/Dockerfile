@@ -1,4 +1,7 @@
-FROM node:22-alpine AS base
+# Use Debian-slim (glibc) for building so Rollup's native binary
+# (@rollup/rollup-linux-x64-gnu, recorded in the lockfile) loads correctly.
+# Alpine uses musl libc and cannot load the glibc binary.
+FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
